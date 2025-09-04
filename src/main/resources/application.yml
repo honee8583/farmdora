@@ -5,3 +5,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+
+jwt:
+  secret: farmdora
+  expiration_time: 600000              # 10분
+  refresh_expiration_time: 1209600000  # 14일
