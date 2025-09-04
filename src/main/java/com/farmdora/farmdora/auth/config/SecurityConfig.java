@@ -1,5 +1,7 @@
 package com.farmdora.farmdora.auth.config;
 
+import com.farmdora.farmdora.auth.filter.CustomAccessDeniedHandler;
+import com.farmdora.farmdora.auth.filter.CustomAuthenticationEntrypoint;
 import com.farmdora.farmdora.auth.filter.JwtAuthorizationFilter;
 import com.farmdora.farmdora.auth.service.LoginService;
 import com.farmdora.farmdora.auth.util.JwtUtil;
@@ -14,6 +16,7 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -23,13 +26,21 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final CustomAuthenticationEntrypoint authenticationEntrypoint;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
+
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public JwtAuthorizationFilter jwtAuthorizationFilter(JwtUtil jwtUtil, LoginService loginService) {
+        return new JwtAuthorizationFilter(jwtUtil, loginService);
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthorizationFilter jwtAuthorizationFilter) throws Exception {
         http.headers(headers -> headers.frameOptions(FrameOptionsConfig::disable))
             .cors(cors -> cors.configurationSource(configurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -40,6 +51,18 @@ public class SecurityConfig {
         http.logout(logout -> logout
                 .logoutUrl("/api/logout")
         );
+
+        http.authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/api/auth/test").hasRole("USER")
+                .anyRequest().permitAll()
+        );
+
+        http.exceptionHandling(e -> e
+                .authenticationEntryPoint(authenticationEntrypoint)
+                .accessDeniedHandler(accessDeniedHandler)
+        );
+
+        http.addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
