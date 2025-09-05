@@ -3,7 +3,6 @@ package com.farmdora.farmdora.auth.config;
 import com.farmdora.farmdora.auth.filter.CustomAccessDeniedHandler;
 import com.farmdora.farmdora.auth.filter.CustomAuthenticationEntrypoint;
 import com.farmdora.farmdora.auth.filter.JwtAuthorizationFilter;
-import com.farmdora.farmdora.auth.service.LoginService;
 import com.farmdora.farmdora.auth.util.JwtUtil;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -35,8 +34,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtAuthorizationFilter jwtAuthorizationFilter(JwtUtil jwtUtil, LoginService loginService) {
-        return new JwtAuthorizationFilter(jwtUtil, loginService);
+    public JwtAuthorizationFilter jwtAuthorizationFilter(JwtUtil jwtUtil) {
+        return new JwtAuthorizationFilter(jwtUtil);
     }
 
     @Bean

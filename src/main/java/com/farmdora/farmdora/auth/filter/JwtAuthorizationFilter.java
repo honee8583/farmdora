@@ -2,7 +2,6 @@ package com.farmdora.farmdora.auth.filter;
 
 import com.farmdora.farmdora.auth.dto.JwtConstants;
 import com.farmdora.farmdora.auth.dto.LoginUser;
-import com.farmdora.farmdora.auth.service.LoginService;
 import com.farmdora.farmdora.auth.util.AuthenticationResponseUtil;
 import com.farmdora.farmdora.auth.util.JwtUtil;
 import com.farmdora.farmdora.common.error.exception.CustomException;
@@ -30,7 +29,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-    private final LoginService loginService;
 
     // 아래 url들은 jwt 토큰 검사를 패스함
     private static final List<String> WHITELIST = List.of(
@@ -69,7 +67,6 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         try {
             if (StringUtils.hasText(token)) {
                 LoginUser principal = jwtUtil.verify(token);
-                principal = loginService.getLoginUser(principal.getId());
 
                 if (SecurityContextHolder.getContext().getAuthentication() == null) {
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
